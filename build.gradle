@@ -1,0 +1,27 @@
+repositories {
+  mavenCentral()
+}
+
+group = "com.xetus.oss.iris"
+version = "1.0-SNAPSHOT"
+
+apply plugin: 'groovy'
+apply plugin: "maven-publish"
+
+dependencies {
+  compile 'org.codehaus.groovy:groovy-all:2.3.9',
+          'org.slf4j:slf4j-api:1.7.5',
+          'org.apache.httpcomponents:httpclient:4.3.6',
+          'com.github.briandilley.jsonrpc4j:jsonrpc4j:1.1'
+  
+  testCompile "junit:junit:4.11"
+}
+
+
+publishing {
+  publications {
+    dist(MavenPublication) {
+      from components.java
+    }
+  }
+}
