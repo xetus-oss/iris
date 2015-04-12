@@ -204,14 +204,15 @@ class FreeIPAAuthenticationManager {
             throw new InvalidUserOrRealmException()
           }
 
-          throw new RuntimeException("Encountered unexpected response from "
-          + "FreeIPA; details:\n\n"
-          + "code: ${response.statusLine.statusCode}\n"
-          + "headers: ${response.getAllHeaders()}\n"
-          + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
-          + "-----------\n\n")
         }
       }
+      
+      throw new RuntimeException("Encountered unexpected response from "
+        + "FreeIPA; details:\n\n"
+        + "code: ${response.statusLine.statusCode}\n"
+        + "headers: ${response.getAllHeaders()}\n"
+        + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
+        + "-----------\n\n")
     }
 
     Cookie sessionCookie = cookieStore.getCookies().find {
@@ -271,14 +272,14 @@ class FreeIPAAuthenticationManager {
         if (reasons.size() > 0 && reasons[0].value == "password-expired") {
           throw new PasswordExpiredException()
         }
+      }
 
-        throw new RuntimeException("Encountered unexpected response from "
+      throw new RuntimeException("Encountered unexpected response from "
         + "FreeIPA; details:\n\n"
         + "code: ${response.statusLine.statusCode}\n"
         + "headers: ${response.getAllHeaders()}\n"
         + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
         + "-----------\n\n")
-      }
     }
 
     Header[] reasons = response.getHeaders("X-IPA-Pwchange-Result")
