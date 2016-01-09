@@ -1,7 +1,5 @@
 package com.xetus.iris
 
-import com.sun.security.auth.login.ConfigFile
-
 import groovy.transform.CompileStatic
 
 @CompileStatic

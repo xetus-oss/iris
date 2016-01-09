@@ -1,0 +1,11 @@
+{
+    "error": {
+        "code": 4002, 
+        "message": "user with name \"testuser\" already exists", 
+        "name": "DuplicateEntry"
+    }, 
+    "id": 0, 
+    "principal": "admin@DEV.XETUS.COM", 
+    "result": null, 
+    "version": "4.1.4"
+}

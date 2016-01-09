@@ -2,7 +2,59 @@
 
 A Java library for consuming FreeIPA's JSON-RPC API that handles establishing an RPC session using either Kerberos authentication or a username and password. Please see the comments in the FreeIPAConfig, FreeIPAAuthenticationManager and FreeIPAClient for more details.
 
-# Example Usage
+## Quick Start :: Command Line Console
+
+For quick and dirty testing purposes, a simple command line console utility is bundled with the Iris project (TODO: factor into a separate sub-project that generates a separate artifact). This is mostly for demonstrative purposes as the FreeIPA JSON-RPC API is really just an abstraction of the FreeIPA command line tools anyhow.
+
+To use the command line console, download the source and run the following:
+
+```
+#
+# Install the CLI's distributable to a local folder
+#
+./gradlew installDist
+
+#
+# Start the CLI console
+#
+./build/install/iris/bin/iris
+```
+
+Once the console has started, you'll need to do a few things to start interacting with the FreeIPA instance.
+
+#### 1. Configure the Console's JVM Keystore
+*Note: this is likely only required if the FreeIPA instance to which you're attempting to connect uses a self-signed certificate that isn't in your default JVM*
+
+For convenience, the parent console of the utility exposes a function for re-configuring the JVM's keystore. If this is something you need, start the command line console and run the following, replacing {path_to_your_keystore} with the relative path to the keystore you want the console's JVM to use:
+
+```
+RPCClient> set-java-keystore {path_to_your_keystore}
+```
+
+#### 2. Start a User Session
+
+In order to interact with a FreeIPA instance, you must establish a session with the FreeIPA instance. At this time the command line console only supports the session client and not the Kerberos client. To establish a session:
+
+```
+RPCClient> authenticate {HOST_NAME} {USER_NAME} {PASSWORD} {KERBEROS_REALM}
+```
+
+If all goes as planned, you should see a sub-shell start up like the following:
+
+```
+success
+RPCClient/user@realm>
+```
+
+#### 3. Interacting with the FreeIPA Instance
+
+You're now ready to interact with the FreeIPA instance using the Iris command line console. To see a list of supported RPC calls, run:
+
+```
+RPCClient/user@realm> ?list
+```
+
+## Usage
 
 ### Authenticating Using User Session
 Authenticating using FReeIPA user credentials is relatively straightforward:

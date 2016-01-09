@@ -1,0 +1,60 @@
+{
+    "error": null, 
+    "id": 0, 
+    "principal": "admin@DEV.XETUS.COM", 
+    "result": {
+        "messages": [], 
+        "result": {
+            "attributelevelrights": {
+                "aci": "rscwo", 
+                "cn": "rscwo", 
+                "krbmaxpwdlife": "rscwo", 
+                "krbminpwdlife": "rscwo", 
+                "krbpwdfailurecountinterval": "rscwo", 
+                "krbpwdhistorylength": "rscwo", 
+                "krbpwdlockoutduration": "rscwo", 
+                "krbpwdmaxfailure": "rscwo", 
+                "krbpwdmindiffchars": "rscwo", 
+                "krbpwdminlength": "rscwo", 
+                "nsaccountlock": "rscwo", 
+                "objectclass": "rscwo"
+            }, 
+            "cn": [
+                "global_policy"
+            ], 
+            "dn": "cn=global_policy,cn=DEV.XETUS.COM,cn=kerberos,dc=dev,dc=xetus,dc=com", 
+            "krbmaxpwdlife": [
+                "90"
+            ], 
+            "krbminpwdlife": [
+                "1"
+            ], 
+            "krbpwdfailurecountinterval": [
+                "60"
+            ], 
+            "krbpwdhistorylength": [
+                "0"
+            ], 
+            "krbpwdlockoutduration": [
+                "600"
+            ], 
+            "krbpwdmaxfailure": [
+                "6"
+            ], 
+            "krbpwdmindiffchars": [
+                "0"
+            ], 
+            "krbpwdminlength": [
+                "8"
+            ], 
+            "objectclass": [
+                "nsContainer", 
+                "top", 
+                "krbPwdPolicy"
+            ]
+        }, 
+        "summary": null, 
+        "value": null
+    }, 
+    "version": "4.1.4"
+}

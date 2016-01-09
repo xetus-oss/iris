@@ -1,0 +1,84 @@
+{
+    "error": null, 
+    "id": 0, 
+    "principal": "admin@DEV.XETUS.COM", 
+    "result": {
+        "messages": [], 
+        "result": {
+            "aci": [
+                "(targetfilter = \"(objectclass=krbpwdpolicy)\")(version 3.0;acl \"permission:System: Add Group Password Policy\";allow (add) groupdn = \"ldap:///cn=System: Add Group Password Policy,cn=permissions,cn=pbac,dc=dev,dc=xetus,dc=com\";)", 
+                "(targetattr = \"createtimestamp || entryusn || krbdefaultencsalttypes || krbmaxrenewableage || krbmaxticketlife || krbsupportedencsalttypes || modifytimestamp || objectclass\")(targetfilter = \"(objectclass=krbticketpolicyaux)\")(version 3.0;acl \"permission:System: Read Default Kerberos Ticket Policy\";allow (compare,read,search) groupdn = \"ldap:///cn=System: Read Default Kerberos Ticket Policy,cn=permissions,cn=pbac,dc=dev,dc=xetus,dc=com\";)", 
+                "(targetfilter = \"(objectclass=krbpwdpolicy)\")(version 3.0;acl \"permission:System: Delete Group Password Policy\";allow (delete) groupdn = \"ldap:///cn=System: Delete Group Password Policy,cn=permissions,cn=pbac,dc=dev,dc=xetus,dc=com\";)", 
+                "(targetattr = \"krbmaxpwdlife || krbminpwdlife || krbpwdfailurecountinterval || krbpwdhistorylength || krbpwdlockoutduration || krbpwdmaxfailure || krbpwdmindiffchars || krbpwdminlength\")(targetfilter = \"(objectclass=krbpwdpolicy)\")(version 3.0;acl \"permission:System: Modify Group Password Policy\";allow (write) groupdn = \"ldap:///cn=System: Modify Group Password Policy,cn=permissions,cn=pbac,dc=dev,dc=xetus,dc=com\";)", 
+                "(targetattr = \"cn || cospriority || createtimestamp || entryusn || krbmaxpwdlife || krbminpwdlife || krbpwdfailurecountinterval || krbpwdhistorylength || krbpwdlockoutduration || krbpwdmaxfailure || krbpwdmindiffchars || krbpwdminlength || modifytimestamp || objectclass\")(targetfilter = \"(objectclass=krbpwdpolicy)\")(version 3.0;acl \"permission:System: Read Group Password Policy\";allow (compare,read,search) groupdn = \"ldap:///cn=System: Read Group Password Policy,cn=permissions,cn=pbac,dc=dev,dc=xetus,dc=com\";)"
+            ], 
+            "attributelevelrights": {
+                "aci": "rscwo", 
+                "cn": "rscwo", 
+                "krbadmservers": "rscwo", 
+                "krbdefaultencsalttypes": "rscwo", 
+                "krbkdcservers": "rscwo", 
+                "krbldapservers": "rscwo", 
+                "krbmaxrenewableage": "rscwo", 
+                "krbmaxticketlife": "rscwo", 
+                "krbmkey": "", 
+                "krbprinccontainerref": "rscwo", 
+                "krbprincnamingattr": "rscwo", 
+                "krbpwdpolicyreference": "rscwo", 
+                "krbpwdservers": "rscwo", 
+                "krbsearchscope": "rscwo", 
+                "krbsubtrees": "rscwo", 
+                "krbsupportedencsalttypes": "rscwo", 
+                "krbticketflags": "rscwo", 
+                "krbticketpolicyreference": "rscwo", 
+                "krbupenabled": "rscwo", 
+                "nsaccountlock": "rscwo", 
+                "objectclass": "rscwo"
+            }, 
+            "cn": [
+                "DEV.XETUS.COM"
+            ], 
+            "dn": "cn=DEV.XETUS.COM,cn=kerberos,dc=dev,dc=xetus,dc=com", 
+            "krbdefaultencsalttypes": [
+                "aes256-cts:special", 
+                "des3-hmac-sha1:special", 
+                "aes128-cts:special", 
+                "arcfour-hmac:special"
+            ], 
+            "krbmaxrenewableage": [
+                "604800"
+            ], 
+            "krbmaxticketlife": [
+                "86400"
+            ], 
+            "krbsearchscope": [
+                "2"
+            ], 
+            "krbsubtrees": [
+                "dc=dev,dc=xetus,dc=com"
+            ], 
+            "krbsupportedencsalttypes": [
+                "aes256-cts:special", 
+                "camellia256-cts-cmac:normal", 
+                "camellia256-cts-cmac:special", 
+                "aes128-cts:normal", 
+                "aes128-cts:special", 
+                "camellia128-cts-cmac:normal", 
+                "arcfour-hmac:normal", 
+                "camellia128-cts-cmac:special", 
+                "aes256-cts:normal", 
+                "des3-hmac-sha1:special", 
+                "des3-hmac-sha1:normal", 
+                "arcfour-hmac:special"
+            ], 
+            "objectclass": [
+                "krbrealmcontainer", 
+                "top", 
+                "krbticketpolicyaux"
+            ]
+        }, 
+        "summary": null, 
+        "value": null
+    }, 
+    "version": "4.1.4"
+}

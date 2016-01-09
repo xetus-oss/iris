@@ -5,22 +5,20 @@ import groovy.util.logging.Slf4j
 
 import org.apache.http.Header
 import org.apache.http.HttpResponse
-import org.apache.http.client.HttpClient
+import org.apache.http.client.CookieStore
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.config.SocketConfig
 import org.apache.http.conn.HttpClientConnectionManager
 import org.apache.http.cookie.Cookie
-import org.apache.http.entity.ByteArrayEntity
 import org.apache.http.entity.ContentType
 import org.apache.http.impl.client.BasicCookieStore
-import org.apache.http.client.CookieStore
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.message.BasicNameValuePair
 
-import com.googlecode.jsonrpc4j.JsonRpcClientException
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient
+import com.xetus.iris.jackson.databind.ObjectMapperBuilder
 
 /**
  * Manages authenticating against the FreeIPA server and establishing
@@ -127,6 +125,7 @@ class FreeIPAAuthenticationManager {
     config.applyKerberosProperties()
     return new FreeIPAClient(
       new JsonRpcHttpClient(
+        ObjectMapperBuilder.getObjectMapper(),
         getIpaUrl("/ipa/json"),
         [
           "referer": getIpaUrl('/ipa').toString()
@@ -144,6 +143,7 @@ class FreeIPAAuthenticationManager {
   FreeIPAClient getSessionClient(String user, String pass, String realm = null) {
     return new FreeIPAClient(
       new JsonRpcHttpClient(
+        ObjectMapperBuilder.getObjectMapper(),
         getIpaUrl("/ipa/session/json"),
         [
           "Cookie": "ipa_session=" + connect(user, pass, realm),

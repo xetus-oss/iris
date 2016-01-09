@@ -1,0 +1,12 @@
+{
+    "error": null, 
+    "id": 0, 
+    "principal": "admin@DEV.XETUS.COM", 
+    "result": {
+        "messages": [], 
+        "result": true, 
+        "summary": "Changed password for \"testuser@DEV.XETUS.COM\"", 
+        "value": "testuser@DEV.XETUS.COM"
+    }, 
+    "version": "4.1.4"
+}

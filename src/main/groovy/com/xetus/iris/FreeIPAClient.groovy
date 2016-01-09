@@ -1,10 +1,19 @@
-package com.xetus.iris
+package com.xetus.iris;
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
+import java.lang.reflect.ParameterizedType
+
+import org.apache.commons.lang3.reflect.TypeUtils
+
 import com.googlecode.jsonrpc4j.JsonRpcClientException
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient
+
+import com.xetus.iris.model.RPCResponse
+import com.xetus.iris.model.freeipa.account.KerberosTicketPolicy
+import com.xetus.iris.model.freeipa.account.PasswordPolicy
+import com.xetus.iris.model.freeipa.account.User
 
 /**
  * A wrapper around the jsonrpc4j library to simplify making
@@ -13,11 +22,19 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient
 @Slf4j
 @CompileStatic
 class FreeIPAClient {
-
+  
+  private static final String DEFAULT_RPC_VERSION = "2.114"
+  
   JsonRpcHttpClient rpcClient
+  String rpcVersion
   
   FreeIPAClient(JsonRpcHttpClient client) {
+    this(client, DEFAULT_RPC_VERSION)
+  }
+  
+  FreeIPAClient(JsonRpcHttpClient client, String rpcVersion) {
     this.rpcClient = client
+    this.rpcVersion = rpcVersion
   }
   
   /**
@@ -37,9 +54,10 @@ class FreeIPAClient {
    * 
    * </ul>
    */
-  RPCResult invoke(String method, List<String> flags, 
-                   Map<String, String> params)
-      throws JsonRpcClientException {
+  public <T> RPCResponse<T> invoke(String method, 
+                                   List<String> flags, 
+                                   Map<String, String> params,
+                                   Class<T> resultType) throws JsonRpcClientException {
     
     log.trace("Issuing JSON-RPC request:\n\n"
       + "method: $method\n"
@@ -47,9 +65,24 @@ class FreeIPAClient {
       + "params: $params\n"
       + "--------\n\n")
     
-    def result = rpcClient.invoke(method, [flags, params], RPCResult.class)
-    result
+    params << [ "version": rpcVersion ]
+    ParameterizedType type = TypeUtils
+        .parameterize(RPCResponse.class, resultType)
+    (RPCResponse<T>) rpcClient.invoke(method, [flags, params], type)
   }
+      
+  public <T> RPCResponse<List<T>> invokeList(String method,
+                                             List<String> flags = [], 
+                                             Map<String, String> params = [:], 
+                                             Class<T> resultType) throws JsonRpcClientException {
+                                             
+    params << [ "version": rpcVersion ]
+    ParameterizedType type = TypeUtils.parameterize(
+        RPCResponse.class,
+        TypeUtils.parameterize(List.class, resultType)
+    )
+    (RPCResponse<List<T>>) rpcClient.invoke(method, [flags, params], type)
+  } 
   
   /**
    * Proxies the `ipa user_find` command.
@@ -63,9 +96,9 @@ class FreeIPAClient {
    * 
    * </ul>
    */
-  RPCResult userFind(List<String> flags = [], Map<String, String> params = [:])
-      throws JsonRpcClientException {
-    invoke("user_find", flags, params)
+  RPCResponse<List<User>> userFind(List<String> flags = [], 
+                                   Map<String, String> params = [:]) throws JsonRpcClientException {
+    invokeList("user_find", flags, params, User.class)
   }
   
   /**
@@ -79,8 +112,10 @@ class FreeIPAClient {
    * 
    * </ul> 
    */
-  RPCResult userShow(String user, Map<String, String> params = [:]) {
-    invoke("user_show", [user], params)
+  RPCResponse<User> userShow(String user = null, 
+                             Map<String, String> params = [:]) throws JsonRpcClientException {
+    List<String> flags = ((user == null) ? (List<String>) [] : [user])
+    invoke("user_show", flags, params, User.class)
   }
   
   /**
@@ -94,8 +129,9 @@ class FreeIPAClient {
    * 
    * </ul> 
    */
-  RPCResult pwpolicyShow(Map<String, String> params = [:]) {
-    invoke("pwpolicy_show", [], params)
+  RPCResponse<PasswordPolicy> pwpolicyShow(Map<String, String> params = [:])
+                              throws JsonRpcClientException {
+    invoke("pwpolicy_show", [], params, PasswordPolicy.class)
   }
   
   /**
@@ -109,8 +145,10 @@ class FreeIPAClient {
    * 
    * </ul> 
    */
-  RPCResult krbtpolicyShow(String user, Map<String, String> params = [:]) {
-    invoke("krbtpolicy_show", [user], params)
+  RPCResponse<KerberosTicketPolicy> krbtpolicyShow(String user = null, 
+                                                   Map<String, String> params = [:]) throws JsonRpcClientException {
+    List<String> flags = user == null ? (List<String>) [] : [user]
+    invoke("krbtpolicy_show", flags, params, KerberosTicketPolicy.class)
   }
 
   /**
@@ -128,9 +166,14 @@ class FreeIPAClient {
    *  <li>code 4203 indicates a password policy violation
    * </ul>
    */
-  RPCResult passwd(String user, String oldPass, String newPass) 
-      throws JsonRpcClientException {
-    invoke("passwd", [user], [current_password: oldPass, password: newPass])
+  RPCResponse<Boolean> passwd(String user, String oldPass, String newPass) 
+                       throws JsonRpcClientException {
+    invoke(
+      "passwd", 
+      [user], 
+      [current_password: oldPass, password: newPass], 
+      Boolean.class
+    )
   }
 
   /**
@@ -147,9 +190,14 @@ class FreeIPAClient {
    *  <li>code 4203 indicates a password policy violation
    * </ul>
    */
-  RPCResult passwd(String user, String newPass)
-      throws JsonRpcClientException {
-    invoke("passwd", [user], [password: newPass])
+  RPCResponse<Boolean> passwd(String user, String newPass)
+                       throws JsonRpcClientException {
+    invoke(
+      "passwd", 
+      [user], 
+      [password: newPass], 
+      Boolean.class
+    )
   }
   
   /**
@@ -167,14 +215,14 @@ class FreeIPAClient {
    * application errors. Specifically: <ul>
    * </ul>
    */
-  RPCResult userAdd(String uid, String givenName, 
-                    String sn, Map<String, String> attributes = [:])
-      throws JsonRpcClientException {
+  RPCResponse<User> userAdd(String uid, String givenName, 
+                            String sn, 
+                            Map<String, String> attributes = [:]) throws JsonRpcClientException {
     attributes.putAll([uid: uid, givenname: givenName, sn: sn])
-    invoke("user_add", [], attributes)
+    invoke("user_add",[], attributes, User.class)
   }
       
-  RPCResult logout() throws JsonRpcClientException {
-    invoke("session_logout", [], [:])
+  RPCResponse<Boolean> logout() throws JsonRpcClientException {
+    invoke("session_logout", [], [:], Boolean.class)
   }
 }

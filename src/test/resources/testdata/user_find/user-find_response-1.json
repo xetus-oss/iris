@@ -1,0 +1,38 @@
+{
+    "error": null, 
+    "id": 0, 
+    "principal": "admin@DEV.XETUS.COM", 
+    "result": {
+        "count": 1, 
+        "messages": [], 
+        "result": [
+            {
+                "dn": "uid=admin,cn=users,cn=accounts,dc=dev,dc=xetus,dc=com", 
+                "gidnumber": [
+                    "1092800000"
+                ], 
+                "has_keytab": true, 
+                "has_password": true, 
+                "homedirectory": [
+                    "/home/admin"
+                ], 
+                "loginshell": [
+                    "/bin/bash"
+                ], 
+                "nsaccountlock": false, 
+                "sn": [
+                    "Administrator"
+                ], 
+                "uid": [
+                    "admin"
+                ], 
+                "uidnumber": [
+                    "1092800000"
+                ]
+            }
+        ], 
+        "summary": "1 user matched", 
+        "truncated": false
+    }, 
+    "version": "4.1.4"
+}

@@ -1,0 +1,93 @@
+{
+    "error": null, 
+    "id": 0, 
+    "principal": "admin@DEV.XETUS.COM", 
+    "result": {
+        "messages": [], 
+        "result": {
+            "cn": [
+                "TestUser User"
+            ], 
+            "displayname": [
+                "TestUser User"
+            ], 
+            "dn": "uid=testuser,cn=users,cn=accounts,dc=dev,dc=xetus,dc=com", 
+            "gecos": [
+                "TestUser User"
+            ], 
+            "gidnumber": [
+                "1092800001"
+            ], 
+            "givenname": [
+                "TestUser"
+            ], 
+            "has_keytab": true, 
+            "has_password": true, 
+            "homedirectory": [
+                "/home/testuser"
+            ], 
+            "initials": [
+                "TU"
+            ], 
+            "ipauniqueid": [
+                "3e2270b8-a107-11e5-90dd-0242ac110005"
+            ], 
+            "krbextradata": [
+                {
+                    "__base64__": "AAKRdmxWcm9vdC9hZG1pbkBERVYuWEVUVVMuQ09NAA=="
+                }
+            ], 
+            "krblastpwdchange": [
+              {
+                  "__datetime__": "20151212193337Z"
+              }
+            ], 
+            "krbpasswordexpiration": [
+              {
+                  "__datetime__": "20151212193337Z"
+              }
+            ], 
+            "krbprincipalname": [
+                "testuser@DEV.XETUS.COM"
+            ], 
+            "loginshell": [
+                "/bin/sh"
+            ], 
+            "mail": [
+                "testuser@dev.xetus.com"
+            ], 
+            "memberof_group": [
+                "ipausers"
+            ], 
+            "mepmanagedentry": [
+                "cn=testuser,cn=groups,cn=accounts,dc=dev,dc=xetus,dc=com"
+            ], 
+            "objectclass": [
+                "ipaSshGroupOfPubKeys", 
+                "ipaobject", 
+                "mepOriginEntry", 
+                "person", 
+                "top", 
+                "ipasshuser", 
+                "inetorgperson", 
+                "organizationalperson", 
+                "krbticketpolicyaux", 
+                "krbprincipalaux", 
+                "inetuser", 
+                "posixaccount"
+            ], 
+            "sn": [
+                "User"
+            ], 
+            "uid": [
+                "testuser"
+            ], 
+            "uidnumber": [
+                "1092800001"
+            ]
+        }, 
+        "summary": "Added user \"testuser\"", 
+        "value": "testuser"
+    }, 
+    "version": "4.1.4"
+}
