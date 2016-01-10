@@ -1,10 +1,13 @@
 package com.xetus.iris
 
+import groovy.transform.CompileStatic
+
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 
 import com.xetus.iris.model.RPCResponse
 
+@CompileStatic
 class FreeIPAClientPasswdResponseDeserializationTest 
       extends AbstractFreeIPAClientMethodResponseDeserializationTest<Boolean> {
 

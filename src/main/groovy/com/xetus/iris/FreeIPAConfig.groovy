@@ -1,5 +1,8 @@
 package com.xetus.iris
 
+import com.xetus.iris.model.DefaultFreeIPAResponseModelTypeFactory
+import com.xetus.iris.model.FreeIPAResponseModelTypeFactory
+
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -44,6 +47,22 @@ class FreeIPAConfig {
    * properly configuring the jaas client.
    */
   String jaasConfigPath
+  
+  /**
+   * The {@link FreeIPAResponseModelTypeFactory} to use for deserializing
+   * each of the FreeIPA JSON response objects (an exceedingly crude and 
+   * simple dependency injection context). The typeFactory is an attempt 
+   * to facilitate use of the Tolerant Reader pattern; consumers can write
+   * custom object classes to: 
+   * 
+   *  1. reflect any deviations/customizations in their FreeIPA instance's 
+   *  LDAP schema; and 
+   *  
+   *  2. comprise only those schema attributes that are required or of 
+   *  interest to the consuming application
+   */
+  FreeIPAResponseModelTypeFactory typeFactory = 
+      new DefaultFreeIPAResponseModelTypeFactory()
   
   /**
    * This must be called before allowing consumers to issue any queries

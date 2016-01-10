@@ -130,7 +130,8 @@ class FreeIPAAuthenticationManager {
         [
           "referer": getIpaUrl('/ipa').toString()
         ]
-      )
+      ),
+      config.getTypeFactory()
     )
   }
 
@@ -149,7 +150,8 @@ class FreeIPAAuthenticationManager {
           "Cookie": "ipa_session=" + connect(user, pass, realm),
           "referer": getIpaUrl('/ipa').toString()
         ]
-      )
+      ),
+      config.getTypeFactory()
     )
   }
 

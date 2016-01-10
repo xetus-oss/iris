@@ -1,11 +1,14 @@
 package com.xetus.iris
 
+import groovy.transform.CompileStatic
+
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 
 import com.xetus.iris.model.RPCResponse
 import com.xetus.iris.model.freeipa.account.User
 
+@CompileStatic
 class FreeIPAClientUserFindResponseDeserializationTest 
       extends AbstractFreeIPAClientMethodResponseDeserializationTest<List<User>> {
   
@@ -30,15 +33,8 @@ class FreeIPAClientUserFindResponseDeserializationTest
         result = [
           new User().with { User user ->
             dn = "uid=admin,cn=users,cn=accounts,dc=dev,dc=xetus,dc=com"
-            gidnumber = "1092800000"
-            hasKeytab = true
-            hasPassword = true
-            homeDirectory = "/home/admin"
-            loginShell = "/bin/bash"
-            nsAccountLock = false
             sn = "Administrator"
             uid = "admin"
-            uidNumber = "1092800000"   
             return user
           }
         ]

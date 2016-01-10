@@ -10,6 +10,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameter
 
+import com.xetus.iris.model.DefaultFreeIPAResponseModelTypeFactory
 import com.xetus.iris.model.RPCResponse
 
 @RunWith(value = Parameterized.class)
@@ -36,7 +37,8 @@ abstract class AbstractFreeIPAClientMethodResponseDeserializationTest<R> {
   @Test
   void test() {
     FreeIPAClient client = new FreeIPAClient(
-      MockUtils.getMockRPCClient(testResponseJsonFile)
+      MockUtils.getMockRPCClient(testResponseJsonFile),
+      new DefaultFreeIPAResponseModelTypeFactory()
     )
     
     if (exception != null) {

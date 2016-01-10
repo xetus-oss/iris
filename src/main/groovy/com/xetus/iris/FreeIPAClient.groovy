@@ -1,4 +1,4 @@
-package com.xetus.iris;
+package com.xetus.iris
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -10,14 +10,12 @@ import org.apache.commons.lang3.reflect.TypeUtils
 import com.googlecode.jsonrpc4j.JsonRpcClientException
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient
 
+import com.xetus.iris.model.FreeIPAResponseModelTypeFactory
 import com.xetus.iris.model.RPCResponse
-import com.xetus.iris.model.freeipa.account.KerberosTicketPolicy
-import com.xetus.iris.model.freeipa.account.PasswordPolicy
-import com.xetus.iris.model.freeipa.account.User
 
 /**
  * A wrapper around the jsonrpc4j library to simplify making
- * FreeIPA JSON-RPC calls. Note that this is probably a bad idea.   
+ * FreeIPA JSON-RPC calls.
  */
 @Slf4j
 @CompileStatic
@@ -26,14 +24,19 @@ class FreeIPAClient {
   private static final String DEFAULT_RPC_VERSION = "2.114"
   
   JsonRpcHttpClient rpcClient
+  FreeIPAResponseModelTypeFactory typeFactory
   String rpcVersion
   
-  FreeIPAClient(JsonRpcHttpClient client) {
-    this(client, DEFAULT_RPC_VERSION)
+  FreeIPAClient(JsonRpcHttpClient client, 
+                FreeIPAResponseModelTypeFactory typeFactory) {
+    this(client, typeFactory, DEFAULT_RPC_VERSION)
   }
   
-  FreeIPAClient(JsonRpcHttpClient client, String rpcVersion) {
+  FreeIPAClient(JsonRpcHttpClient client, 
+                FreeIPAResponseModelTypeFactory typeFactory, 
+                String rpcVersion) {
     this.rpcClient = client
+    this.typeFactory = typeFactory
     this.rpcVersion = rpcVersion
   }
   
@@ -44,15 +47,19 @@ class FreeIPAClient {
    * retrieve the {@link JsonRpcHttpClient} directly through the
    * {@link #rpcClient} field.
    * 
+   * This method should be used over the {@link #invokeList(String, List)} 
+   * methods in cases where the expected FreeIPA JSON RPC response result
+   * object is expected to be an unwrapped single object rather than a list
+   * of objects.
+   *  
    * @param method
    * @param flags
    * @param params
+   * @param resultType
    * @return
    * 
    * @throws JsonRpcClientException if the server API responds with any
-   * application errors. Specifically: <ul>
-   * 
-   * </ul>
+   * application errors
    */
   public <T> RPCResponse<T> invoke(String method, 
                                    List<String> flags, 
@@ -70,7 +77,26 @@ class FreeIPAClient {
         .parameterize(RPCResponse.class, resultType)
     (RPCResponse<T>) rpcClient.invoke(method, [flags, params], type)
   }
-      
+  
+  /**
+   * A wrapper around the {@link 
+   * JsonRpcHttpClient#invoke(String, Object, Class)} method. If this does
+   * not expose satisfactory fleixbility, consumers can always retrieve the
+   * {@link JsonRpcHttpClient} diretly through the {@link #rpcClient} field.
+   * 
+   * This method should be used over the {@link #invoke(String, List)} 
+   * methods in cases where the expected FreeIPA JSON RPC response result
+   * object is expected to be a list of objects.
+   * 
+   * @param method
+   * @param flags
+   * @param params
+   * @param resultType
+   * @return
+   * 
+   * @throws JsonRpcClientException if the server API responds with any
+   * application errors
+   */
   public <T> RPCResponse<List<T>> invokeList(String method,
                                              List<String> flags = [], 
                                              Map<String, String> params = [:], 
@@ -96,9 +122,9 @@ class FreeIPAClient {
    * 
    * </ul>
    */
-  RPCResponse<List<User>> userFind(List<String> flags = [], 
-                                   Map<String, String> params = [:]) throws JsonRpcClientException {
-    invokeList("user_find", flags, params, User.class)
+  RPCResponse<List<Object>> userFind(List<String> flags = [], 
+                                Map<String, String> params = [:]) throws JsonRpcClientException {
+    invokeList("user_find", flags, params, typeFactory.getUserClass())
   }
   
   /**
@@ -112,10 +138,10 @@ class FreeIPAClient {
    * 
    * </ul> 
    */
-  RPCResponse<User> userShow(String user = null, 
+  RPCResponse<Object> userShow(String user = null, 
                              Map<String, String> params = [:]) throws JsonRpcClientException {
     List<String> flags = ((user == null) ? (List<String>) [] : [user])
-    invoke("user_show", flags, params, User.class)
+    invoke("user_show", flags, params, typeFactory.getUserClass())
   }
   
   /**
@@ -129,9 +155,9 @@ class FreeIPAClient {
    * 
    * </ul> 
    */
-  RPCResponse<PasswordPolicy> pwpolicyShow(Map<String, String> params = [:])
+  RPCResponse<Object> pwpolicyShow(Map<String, String> params = [:])
                               throws JsonRpcClientException {
-    invoke("pwpolicy_show", [], params, PasswordPolicy.class)
+    invoke("pwpolicy_show", [], params, typeFactory.getPasswordPolicyClass())
   }
   
   /**
@@ -145,10 +171,10 @@ class FreeIPAClient {
    * 
    * </ul> 
    */
-  RPCResponse<KerberosTicketPolicy> krbtpolicyShow(String user = null, 
+  RPCResponse<Object> krbtpolicyShow(String user = null, 
                                                    Map<String, String> params = [:]) throws JsonRpcClientException {
     List<String> flags = user == null ? (List<String>) [] : [user]
-    invoke("krbtpolicy_show", flags, params, KerberosTicketPolicy.class)
+    invoke("krbtpolicy_show", flags, params, typeFactory.getKerberosTicketPolicyClass())
   }
 
   /**
@@ -215,11 +241,11 @@ class FreeIPAClient {
    * application errors. Specifically: <ul>
    * </ul>
    */
-  RPCResponse<User> userAdd(String uid, String givenName, 
+  RPCResponse<Object> userAdd(String uid, String givenName, 
                             String sn, 
                             Map<String, String> attributes = [:]) throws JsonRpcClientException {
     attributes.putAll([uid: uid, givenname: givenName, sn: sn])
-    invoke("user_add",[], attributes, User.class)
+    invoke("user_add",[], attributes, typeFactory.getUserClass())
   }
       
   RPCResponse<Boolean> logout() throws JsonRpcClientException {

@@ -1,11 +1,14 @@
 package com.xetus.iris
 
+import groovy.transform.CompileStatic
+
 import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized.Parameters
 
 import com.xetus.iris.model.RPCResponse
 import com.xetus.iris.model.freeipa.account.PasswordPolicy
 
+@CompileStatic
 class FreeIPAClientPwPolicyShowResponseDeserializationTest
       extends AbstractFreeIPAClientMethodResponseDeserializationTest<PasswordPolicy> {
   
@@ -41,14 +44,6 @@ class FreeIPAClientPwPolicyShowResponseDeserializationTest
           ]
           cn = "global_policy"
           dn = "cn=global_policy,cn=DEV.XETUS.COM,cn=kerberos,dc=dev,dc=xetus,dc=com"
-          krbMaxPwdLife = 90
-          krbMinPwdLife = 1
-          krbPwdFailureCountInterval = 60
-          krbPwdHistoryLength = 0
-          krbPwdLockoutDuration = 600
-          krbPwdMaxFailure = 6
-          krbPwdMinDiffChars = 0
-          krbPwdMinLength = 8
           objectClass = [
             "nsContainer",
             "top",
