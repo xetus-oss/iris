@@ -3,6 +3,8 @@ package com.xetus.iris
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
+import java.util.concurrent.TimeUnit
+
 import org.apache.http.Header
 import org.apache.http.HttpResponse
 import org.apache.http.client.CookieStore
@@ -13,6 +15,7 @@ import org.apache.http.conn.HttpClientConnectionManager
 import org.apache.http.cookie.Cookie
 import org.apache.http.entity.ContentType
 import org.apache.http.impl.client.BasicCookieStore
+import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager
 import org.apache.http.message.BasicNameValuePair
@@ -59,11 +62,13 @@ class FreeIPAAuthenticationManager {
 
   FreeIPAConfig config
 
-  HttpClientConnectionManager cm = new PoolingHttpClientConnectionManager()
-  CookieStore cookieStore = new BasicCookieStore()
+  PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager()
 
   FreeIPAAuthenticationManager(FreeIPAConfig c) {
     this.config = c
+    this.cm = new PoolingHttpClientConnectionManager(30, TimeUnit.SECONDS)
+    this.cm.setDefaultMaxPerRoute(10)
+    this.cm.setMaxTotal(30)
   }
 
   private String getUser(String user, String realm = null) {
@@ -90,26 +95,31 @@ class FreeIPAAuthenticationManager {
     return post
   }
 
-  private HttpResponse execute(HttpPost post) {
-    HttpResponse response = HttpClientBuilder
-        .create()
-        .useSystemProperties()
-        .setConnectionManager(cm)
-        .setDefaultCookieStore(cookieStore)
-        .setDefaultSocketConfig(SocketConfig.custom()
-        .setSoTimeout(30*1000)
-        .setTcpNoDelay(true)
-        .build())
-        .build()
-        .execute(post)
-
-    log.debug("Post response:\n"
-        + "code: ${response.statusLine.statusCode}\n"
-        + "headers: ${response.getAllHeaders()}\n"
-        + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
-        + "-----------\n\n")
-
-    return response
+  private HttpResponse execute(HttpPost post, CookieStore cookieStore) {
+    CloseableHttpClient client = HttpClientBuilder
+          .create()
+          .useSystemProperties()
+          .setConnectionManager(cm)
+          .setDefaultCookieStore(cookieStore)
+          .setDefaultSocketConfig(
+             SocketConfig.custom()
+                         .setSoTimeout(30*1000)
+                         .setTcpNoDelay(true)
+                         .build())
+          .build()
+    
+    try {
+      HttpResponse response = client.execute(post)
+      log.debug("Post response:\n"
+          + "code: ${response.statusLine.statusCode}\n"
+          + "headers: ${response.getAllHeaders()}\n"
+          + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
+          + "-----------\n\n")
+      
+      return response
+    } finally {
+      client.close();
+    }
   }
 
   URL getIpaUrl(String path = "") {
@@ -186,8 +196,8 @@ class FreeIPAAuthenticationManager {
       new BasicNameValuePair("password", pass)
     ]))
 
-    HttpResponse response = execute(post)
-    
+    CookieStore cookieStore = new BasicCookieStore()
+    HttpResponse response = execute(post, cookieStore)
     if (response.getStatusLine().statusCode != 200) {
       if (response.getStatusLine().statusCode == 401) {
 
@@ -265,7 +275,7 @@ class FreeIPAAuthenticationManager {
 
     post.setEntity(new UrlEncodedFormEntity(parameters))
 
-    HttpResponse response = execute(post)
+    HttpResponse response = execute(post, new BasicCookieStore())
     if (response.getStatusLine().statusCode != 200) {
       if (response.getStatusLine().statusCode == 401) {
 
