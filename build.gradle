@@ -16,7 +16,7 @@ dependencies {
           'org.slf4j:slf4j-api:1.7.5',
           'org.slf4j:slf4j-simple:1.7.5',
           'org.apache.httpcomponents:httpclient:4.3.6',
-          'com.github.briandilley.jsonrpc4j:jsonrpc4j:1.2.0',
+          'com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.0',
           'org.apache.commons:commons-lang3:3.4',
           'com.googlecode.clichemaven:cliche:110413'
 
