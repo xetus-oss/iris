@@ -9,6 +9,7 @@ import org.apache.http.Header
 import org.apache.http.HttpResponse
 import org.apache.http.client.CookieStore
 import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.config.SocketConfig
 import org.apache.http.conn.HttpClientConnectionManager
@@ -62,11 +63,10 @@ class FreeIPAAuthenticationManager {
 
   FreeIPAConfig config
 
-  PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager()
+  PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(30, TimeUnit.SECONDS)
 
   FreeIPAAuthenticationManager(FreeIPAConfig c) {
     this.config = c
-    this.cm = new PoolingHttpClientConnectionManager(30, TimeUnit.SECONDS)
     this.cm.setDefaultMaxPerRoute(10)
     this.cm.setMaxTotal(30)
   }
@@ -95,7 +95,7 @@ class FreeIPAAuthenticationManager {
     return post
   }
 
-  private HttpResponse execute(HttpPost post, CookieStore cookieStore) {
+  private CloseableHttpResponse execute(HttpPost post, CookieStore cookieStore) {
     CloseableHttpClient client = HttpClientBuilder
           .create()
           .useSystemProperties()
@@ -108,18 +108,14 @@ class FreeIPAAuthenticationManager {
                          .build())
           .build()
     
-    try {
-      HttpResponse response = client.execute(post)
-      log.debug("Post response:\n"
-          + "code: ${response.statusLine.statusCode}\n"
-          + "headers: ${response.getAllHeaders()}\n"
-          + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
-          + "-----------\n\n")
-      
-      return response
-    } finally {
-      client.close();
-    }
+    HttpResponse response = client.execute(post)
+    log.debug("Post response:\n"
+        + "code: ${response.statusLine.statusCode}\n"
+        + "headers: ${response.getAllHeaders()}\n"
+        + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
+        + "-----------\n\n")
+    
+    return response
   }
 
   URL getIpaUrl(String path = "") {
@@ -197,36 +193,39 @@ class FreeIPAAuthenticationManager {
     ]))
 
     CookieStore cookieStore = new BasicCookieStore()
-    HttpResponse response = execute(post, cookieStore)
-    if (response.getStatusLine().statusCode != 200) {
-      if (response.getStatusLine().statusCode == 401) {
-
-        Header[] reasons = response.getHeaders("X-IPA-Rejection-Reason")
-
-        if (reasons.size() > 0) {
-          if (reasons[0].value == "password-expired") {
-            throw new PasswordExpiredException()
+    CloseableHttpResponse response = execute(post, cookieStore)
+    try {
+      if (response.getStatusLine().statusCode != 200) {
+        if (response.getStatusLine().statusCode == 401) {
+  
+          Header[] reasons = response.getHeaders("X-IPA-Rejection-Reason")
+  
+          if (reasons.size() > 0) {
+            if (reasons[0].value == "password-expired") {
+              throw new PasswordExpiredException()
+            }
+  
+            if (reasons[0].value == "invalid-password") {
+              throw new InvalidPasswordException()
+            }
+  
+            if (reasons[0].value == "denied") {
+              throw new InvalidUserOrRealmException()
+            }
+  
           }
-
-          if (reasons[0].value == "invalid-password") {
-            throw new InvalidPasswordException()
-          }
-
-          if (reasons[0].value == "denied") {
-            throw new InvalidUserOrRealmException()
-          }
-
         }
+        
+        throw new RuntimeException("Encountered unexpected response from "
+          + "FreeIPA; details:\n\n"
+          + "code: ${response.statusLine.statusCode}\n"
+          + "headers: ${response.getAllHeaders()}\n"
+          + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
+          + "-----------\n\n")
       }
-      
-      throw new RuntimeException("Encountered unexpected response from "
-        + "FreeIPA; details:\n\n"
-        + "code: ${response.statusLine.statusCode}\n"
-        + "headers: ${response.getAllHeaders()}\n"
-        + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
-        + "-----------\n\n")
+    } finally {
+      response.close();
     }
-
     Cookie sessionCookie = cookieStore.getCookies().find {
       it.name == "ipa_session"  
     }
@@ -275,23 +274,27 @@ class FreeIPAAuthenticationManager {
 
     post.setEntity(new UrlEncodedFormEntity(parameters))
 
-    HttpResponse response = execute(post, new BasicCookieStore())
-    if (response.getStatusLine().statusCode != 200) {
-      if (response.getStatusLine().statusCode == 401) {
-
-        Header[] reasons = response.getHeaders("X-IPA-Rejection-Reason")
-
-        if (reasons.size() > 0 && reasons[0].value == "password-expired") {
-          throw new PasswordExpiredException()
+    CloseableHttpResponse response = execute(post, new BasicCookieStore())
+    try {
+      if (response.getStatusLine().statusCode != 200) {
+        if (response.getStatusLine().statusCode == 401) {
+  
+          Header[] reasons = response.getHeaders("X-IPA-Rejection-Reason")
+  
+          if (reasons.size() > 0 && reasons[0].value == "password-expired") {
+            throw new PasswordExpiredException()
+          }
         }
+  
+        throw new RuntimeException("Encountered unexpected response from "
+          + "FreeIPA; details:\n\n"
+          + "code: ${response.statusLine.statusCode}\n"
+          + "headers: ${response.getAllHeaders()}\n"
+          + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
+          + "-----------\n\n")
       }
-
-      throw new RuntimeException("Encountered unexpected response from "
-        + "FreeIPA; details:\n\n"
-        + "code: ${response.statusLine.statusCode}\n"
-        + "headers: ${response.getAllHeaders()}\n"
-        + "content: ${response.getEntity()?.getContent()?.readLines()}\n"
-        + "-----------\n\n")
+    } finally {
+      response.close();
     }
 
     Header[] reasons = response.getHeaders("X-IPA-Pwchange-Result")
