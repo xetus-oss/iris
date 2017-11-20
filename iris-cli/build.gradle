@@ -1,0 +1,9 @@
+apply plugin: 'groovy'
+apply plugin: 'maven-publish'
+apply plugin: 'application'
+
+mainClassName = "com.xetus.oss.iris.cli.Cli"
+
+dependencies {
+  compile project(':iris-rpc-client-default-bindings')
+}

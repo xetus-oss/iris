@@ -1,0 +1,17 @@
+apply plugin: 'groovy'
+
+dependencies {
+  compile 'org.slf4j:slf4j-api:1.7.25',
+          'org.slf4j:slf4j-simple:1.7.25',
+          'org.apache.httpcomponents:httpclient:4.3.6',
+          'com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.2'
+
+  /*
+   * CAUTION: mockito-all pulls a version of Hamcrest that is incompatible
+   * with junit:4.11, so try to use mockito-core instead.
+   * 
+   * See: http://stackoverflow.com/questions/7869711
+   */
+  testCompile "junit:junit:4.11",
+              "org.mockito:mockito-core:1.9.5"
+}

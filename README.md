@@ -193,4 +193,4 @@ To customize the moddel type factory, simply register the class for your overrid
 		.userFind(null, new HashMap<String, String>());
 	...
 	
-Please see the `com.xetus.iris.model.freeipa.account` model classes for example model classes and note that the JSON RPC parser library uses Jackson as it's serialization framework. An exceedingly minimal default model type factory implementation is automatically configured for the FreeIPAConfig instance using the model classes in the example package, although that is mostly for demonstrative purposes.
+Please see the `com.xetus.oss.iris.model.freeipa.account` model classes for example model classes and note that the JSON RPC parser library uses Jackson as it's serialization framework. An exceedingly minimal default model type factory implementation is automatically configured for the FreeIPAConfig instance using the model classes in the example package, although that is mostly for demonstrative purposes.

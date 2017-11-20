@@ -1,40 +1,19 @@
-repositories {
-  mavenCentral()
-}
+allprojects {
+  repositories {
+    mavenCentral()
+  }
 
-group = "com.xetus.oss.iris"
-version = "1.0-SNAPSHOT"
+  apply plugin: 'maven-publish'
+  apply plugin: 'java'
 
-apply plugin: 'groovy'
-apply plugin: "maven-publish"
-apply plugin: 'application'
+  group = 'com.xetus.oss.iris'
+  version = '1.0.0-SNAPSHOT'
 
-mainClassName = "com.xetus.iris.cli.Cli"
-
-dependencies {
-  compile 'org.codehaus.groovy:groovy-all:2.3.9',
-          'org.slf4j:slf4j-api:1.7.5',
-          'org.slf4j:slf4j-simple:1.7.5',
-          'org.apache.httpcomponents:httpclient:4.3.6',
-          'com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.0',
-          'org.apache.commons:commons-lang3:3.4',
-          'com.googlecode.clichemaven:cliche:110413'
-
-  /*
-   * CAUTION: mockito-all pulls a version of Hamcrest that is incompatible
-   * with junit:4.11, so try to use mockito-core instead.
-   * 
-   * See: http://stackoverflow.com/questions/7869711
-   */
-  testCompile "junit:junit:4.11",
-              "org.mockito:mockito-core:1.9.5"
-}
-
-
-publishing {
-  publications {
-    dist(MavenPublication) {
-      from components.java
+  publishing {
+    publications {
+      dist(MavenPublication) {
+        from components.java
+      }
     }
   }
 }
