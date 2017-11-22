@@ -1,3 +1,7 @@
+apply plugin: 'groovy'
+
 dependencies {
-  compile project(':iris-auth')
+  compile project(':iris-auth'),
+          'org.codehaus.groovy:groovy-all:2.4.12',
+          'org.apache.commons:commons-lang3:3.4'
 }

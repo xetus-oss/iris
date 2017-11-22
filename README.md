@@ -17,7 +17,7 @@ To use the command line console, download the source and run the following:
 #
 # Start the CLI console
 #
-./build/install/iris/bin/iris
+./iris-cli/build/install/iris-cli/bin/iris-cli
 ```
 
 Once the console has started, you'll need to do a few things to start interacting with the FreeIPA instance.

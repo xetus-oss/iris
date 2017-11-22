@@ -1,6 +1,7 @@
 package com.xetus.oss.iris.jackson.databind
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.xetus.oss.iris.http.FailedResponseReportingObjectMapper
 
 import groovy.transform.CompileStatic;
 
@@ -15,7 +16,7 @@ class ObjectMapperBuilder {
 
   public static ObjectMapper getObjectMapper() {
     if (mapper == null) {
-      mapper = new ObjectMapper()
+      mapper = new FailedResponseReportingObjectMapper();
       mapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_PROPERTIES, true)
       mapper.setDateFormat(new SimpleDateFormat("yyyyMMddHHmmss"))
     }

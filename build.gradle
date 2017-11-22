@@ -4,16 +4,32 @@ allprojects {
   }
 
   apply plugin: 'maven-publish'
+  apply plugin: 'eclipse'
   apply plugin: 'java'
 
   group = 'com.xetus.oss.iris'
   version = '1.0.0-SNAPSHOT'
+  
+  task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+  }
 
   publishing {
     publications {
       dist(MavenPublication) {
         from components.java
+        
+        artifact sourceJar {
+          classifier "sources"
+        }
       }
+    }
+  }
+  
+  eclipse {
+    classpath {
+      downloadSources = true
+      downloadJavadoc = true
     }
   }
 }

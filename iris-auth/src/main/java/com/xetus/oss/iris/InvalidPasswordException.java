@@ -1,7 +1,6 @@
 package com.xetus.oss.iris;
 
-
-class InvalidPasswordException extends Exception {
+public class InvalidPasswordException extends Exception {
 
   private static final long serialVersionUID = 1L;
 

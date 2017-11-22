@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,21 +61,45 @@ import com.xetus.oss.iris.http.JsonRpcHttpKerberosClient;
  * The {@link FreeIPAClient} returned in both of the above scenarios will
  * have the same access privileges as the accounts used to authenticate them.
  */
-class FreeIPAAuthenticationManager {
+public class FreeIPAAuthenticationManager {
 
   private static final Logger LOGGER = LoggerFactory
       .getLogger(FreeIPAAuthenticationManager.class);
   
-  FreeIPAConfig config;
-
-  PoolingHttpClientConnectionManager cm = 
+  private FreeIPAConfig config;
+  private UserPrincipalConverter userConverter;
+  private PoolingHttpClientConnectionManager cm = 
       new PoolingHttpClientConnectionManager(30, TimeUnit.SECONDS);
 
-  FreeIPAAuthenticationManager(FreeIPAConfig c) {
+  public FreeIPAAuthenticationManager(FreeIPAConfig c) {
     this.config = c;
+    this.userConverter = new UserPrincipalConverter(c);
     this.cm.setDefaultMaxPerRoute(10);
     this.cm.setMaxTotal(30);
+    
+    if (config.getKeytabPath() != null) {
+      this.testKerberosAuthentication();
+    }
   }
+  
+  private boolean testKerberosAuthentication() {
+    try {
+      JsonRpcHttpClient dummyClient = getRPCKerberosClient();
+      Map<String, String> params = new HashMap<>();
+      params.put("version", "2.114");
+      Object result = dummyClient.invoke(
+          "user_find", 
+          Arrays.asList(new ArrayList<String>(), params),
+          Map.class
+      );
+      LOGGER.trace("Successfully verified Kerberos auth: {}", result);
+    } catch(Throwable e) {
+      LOGGER.error("Kerberos authentication test failed", e);
+      return false;
+    }
+    return true;
+  }
+  
   /**
    * @return a {@link JsonRpcHttpClient} configured against the FreeIPA
    * instance's Kerberos RPC API. The returned client is guaranteed to 
@@ -91,6 +116,12 @@ class FreeIPAAuthenticationManager {
       );
     }
     
+    if (config.getKrb5ConfigPath() == null) {
+      throw new IllegalStateException(
+        "Cannot create Kerberos client if krb5 config path is not configrued"
+      );
+    }
+    
     if (config.getPrincipal() == null) {
       throw new IllegalStateException(
         "Cannot create Kerberos client if principal is not configured"
@@ -103,8 +134,7 @@ class FreeIPAAuthenticationManager {
         config.getRPCObjectMapper(),
         getIpaUrl("/ipa/json"),
         headers,
-        config.getKeytabPath(),
-        config.getPrincipal()
+        config
       );
   }
 
@@ -177,7 +207,7 @@ class FreeIPAAuthenticationManager {
   public String connect(String user, String pass, String realm) 
          throws PasswordExpiredException, InvalidPasswordException, InvalidUserOrRealmException {
 
-    user = getUser(user, realm);
+    user = userConverter.getUser(user, realm);
     
     URI target;
     try {
@@ -185,7 +215,7 @@ class FreeIPAAuthenticationManager {
     } catch(URISyntaxException e) {
       throw new IllegalArgumentException("Invalid hostname", e);
     }
-    LOGGER.trace("Connecting for user: {} at target: {}", user, target);
+    LOGGER.debug("Connecting for user: {} at target: {}", user, target);
 
     HttpPost post = getPost(target);
     List<BasicNameValuePair> params = new ArrayList<>();
@@ -218,24 +248,21 @@ class FreeIPAAuthenticationManager {
           Header[] reasons = response.getHeaders("X-IPA-Rejection-Reason");
 
           if (reasons.length > 0) {
-            if (reasons[0].getValue() == "password-expired") {
+            if ("password-expired".equals(reasons[0].getValue())) {
               throw new PasswordExpiredException();
             }
 
-            if (reasons[0].getValue() == "invalid-password") {
+            if ("invalid-password".equals(reasons[0].getValue())) {
               throw new InvalidPasswordException();
             }
 
-            if (reasons[0].getValue() == "denied") {
+            if ("denied".equals(reasons[0].getValue())) {
               throw new InvalidUserOrRealmException();
             }
-
           }
         }
-        
-        throw new RuntimeException(
-            buildExceptionString(response, responseText)
-        );
+
+        handleUnexpectedResponse(response, responseText);
       }
     } finally {
       try {
@@ -251,6 +278,27 @@ class FreeIPAAuthenticationManager {
     
     return sessionCookie.isPresent() ? 
               sessionCookie.get().getValue() : null; 
+  }
+  
+  public JsonRpcHttpClient resetPassword(String user, 
+                                         String oldPass, 
+                                         String newPass) 
+                           throws PasswordExpiredException, 
+                                  InvalidPasswordException, 
+                                  PasswordPolicyViolationException, 
+                                  InvalidUserOrRealmException{
+    return resetPassword(user, oldPass, newPass, null, null);
+  }
+
+  public JsonRpcHttpClient resetPassword(String user, 
+                                         String oldPass, 
+                                         String newPass,
+                                         String realm) 
+                           throws PasswordExpiredException, 
+                                  InvalidPasswordException, 
+                                  PasswordPolicyViolationException, 
+                                  InvalidUserOrRealmException{
+    return resetPassword(user, oldPass, newPass, realm, null);
   }
 
   /**
@@ -276,10 +324,10 @@ class FreeIPAAuthenticationManager {
    * 
    */
   public JsonRpcHttpClient resetPassword(String user, 
-                                  String oldPass, 
-                                  String newPass,
-                                  String realm,
-                                  String otp) 
+                                         String oldPass, 
+                                         String newPass,
+                                         String realm,
+                                         String otp) 
                            throws PasswordExpiredException, 
                                   InvalidPasswordException, 
                                   PasswordPolicyViolationException, 
@@ -331,14 +379,12 @@ class FreeIPAAuthenticationManager {
   
           Header[] reasons = response.getHeaders("X-IPA-Rejection-Reason");
           if (reasons.length > 0 && 
-              reasons[0].getValue() == "password-expired") {
+              "password-expired".equals(reasons[0].getValue())) {
             throw new PasswordExpiredException();
           }
         }
-  
-        throw new RuntimeException(
-            buildExceptionString(response, responseText)
-        );
+
+        handleUnexpectedResponse(response, responseText);
       }
     } finally {
       try {
@@ -350,38 +396,25 @@ class FreeIPAAuthenticationManager {
 
     Header[] reasons = response.getHeaders("X-IPA-Pwchange-Result");
     for (Header header : reasons) {
-      if (header.getValue() == "invalid-password") {
+      if ("invalid-password".equals(header.getValue())) {
         throw new InvalidPasswordException("Invalid password");
       } else
-      if (header.getValue() == "policy-error") {
-        Header[] policyErrors = response
+      if ("policy-error".equals(header.getValue())) {
+        Header[] policyHeaders = response
           .getHeaders("X-IPA-Pwchange-Policy-Error");
-        throw new PasswordPolicyViolationException(
-            policyErrors[0].getValue()
-        );
+
+        List<String> policyViolations = new ArrayList<>();
+        for (Header error : policyHeaders) {
+          policyViolations.add(error.getValue());
+        }
+        throw new PasswordPolicyViolationException(policyViolations);
       }
-      if (header.getValue() == "error") {
+      if ("error".equals(header.getValue())) {
         throw new RuntimeException("Password change failed");
       }
     }
 
     return this.getSessionClient(user, newPass, realm);
-  }
-
-  private String getUser(String user, String realm) {
-    if (realm == null && user.matches("@")) {
-      if (config.getRealm() == null) {
-        throw new IllegalArgumentException("Realm is required to open a "
-        + "connection to the FreeIPA instance");
-      }
-      realm = config.getRealm();
-    }
-
-    if (!user.matches("@")) {
-      user = user + "@" + realm;
-    }
-
-    return user;
   }
 
   private HttpPost getPost(URI target) {
@@ -409,7 +442,7 @@ class FreeIPAAuthenticationManager {
           .build();
     
     CloseableHttpResponse response = client.execute(post);
-    LOGGER.debug(
+    LOGGER.trace(
         "Post response:\ncode: {}\nheaders: {}\ncontent: " +
         "{}\n-----------\n\n",
         response.getStatusLine().getStatusCode(),
@@ -435,7 +468,7 @@ class FreeIPAAuthenticationManager {
   
   private Map<String, String> buildClientHeaders() {
     Map<String, String> headers = new HashMap<>();
-    headers.put("referrer", getIpaUrl("/ipa").toString());
+    headers.put("referer", getIpaUrl("/ipa").toString());
     return headers;
   }
   
@@ -455,18 +488,19 @@ class FreeIPAAuthenticationManager {
     }
     return responseString;
   }
-
-  private String buildExceptionString(CloseableHttpResponse response, 
-                                      String text) {
-    StringBuffer sb = new StringBuffer(
-        "Encountered unexpected response from FreeIPA; details:\\n\\n"
+  
+  private void handleUnexpectedResponse(CloseableHttpResponse response,
+                                        String responseText) {
+    LOGGER.error("Received unexepcted response: \n" +
+        "code: {}\nheaders: {}\ncontent: {}\n-----------\\n\\n",
+        response.getStatusLine().getStatusCode(),
+        response.getAllHeaders(),
+        responseText
     );
-    sb.append("code: ");
-    sb.append(response.getStatusLine().getStatusCode() + "\n");
-    sb.append("headers: " + response.getAllHeaders() + "\n");
-    sb.append("content: " + text + "\n");
-    sb.append("-----------\n\n");
-    return sb.toString();
+    throw new RuntimeException(
+        "Received unexpected response: " + 
+        response.getStatusLine().getStatusCode()
+    );
   }
 
 }

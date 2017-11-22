@@ -9,7 +9,7 @@ package com.xetus.oss.iris;
  *  
  * </ul>
  */
-class InvalidUserOrRealmException extends Exception {
+public class InvalidUserOrRealmException extends Exception {
 
   private static final long serialVersionUID = 1L;
 

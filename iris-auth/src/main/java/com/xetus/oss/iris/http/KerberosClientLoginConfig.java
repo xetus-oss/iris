@@ -24,12 +24,13 @@ public class KerberosClientLoginConfig extends Configuration {
   @Override
   public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
     Map<String, Object> options = new HashMap<>();
+    options.put("doNotPrompt", "true");
     options.put("useKeyTab", "true");
-      options.put("keyTab", this.keytabPath);
-      options.put("principal", this.principal);
-      options.put("storeKey", "true");
-      options.put("doNotPrompt", "true");
-      options.put("isInitiator", "true");
+    options.put("keyTab", this.keytabPath);
+    options.put("storeKey", "true");
+    options.put("useTicketCache", "true");
+    options.put("principal", this.principal);
+    options.put("isInitiator", "true");
     
     if (loginOptions != null) {
       options.putAll(loginOptions);

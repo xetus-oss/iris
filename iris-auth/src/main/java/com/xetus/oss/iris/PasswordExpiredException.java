@@ -1,6 +1,6 @@
 package com.xetus.oss.iris;
 
-class PasswordExpiredException extends Exception {
+public class PasswordExpiredException extends Exception {
 
   private static final long serialVersionUID = 1L;
 

@@ -1,28 +1,19 @@
 package com.xetus.oss.iris;
 
-class PasswordPolicyViolationException extends Exception {
+import java.util.ArrayList;
+import java.util.List;
+
+public class PasswordPolicyViolationException extends Exception {
 
   private static final long serialVersionUID = 1L;
 
-  public PasswordPolicyViolationException() {}
-
-  public PasswordPolicyViolationException(String message) {
-    super(message);
-  }
-
-  public PasswordPolicyViolationException(Throwable cause) {
-    super(cause);
-  }
-
-  public PasswordPolicyViolationException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public PasswordPolicyViolationException(String message, 
-                                Throwable cause,
-                                boolean enableSuppression, 
-                                boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
+  List<String> violations;
+  
+  public PasswordPolicyViolationException(List<String> violations) {
+    this.violations = violations;
   }
   
+  public List<String> getViolations() {
+    return new ArrayList<>(violations);
+  }
 }

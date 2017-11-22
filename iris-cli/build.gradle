@@ -1,9 +1,17 @@
-apply plugin: 'groovy'
+repositories {
+  maven {
+      url 'https://repo.spring.io/libs-milestone'
+  }
+}
+
+apply plugin: 'java'
 apply plugin: 'maven-publish'
 apply plugin: 'application'
 
-mainClassName = "com.xetus.oss.iris.cli.Cli"
+mainClassName = "com.xetus.oss.iris.cli.IrisCliApplication"
 
 dependencies {
-  compile project(':iris-rpc-client-default-bindings')
+  compile project(':iris-rpc-client-default-bindings'),
+          'org.springframework.shell:spring-shell-starter:2.0.0.M2',
+          'org.springframework.boot:spring-boot-starter-logging:1.4.2.RELEASE'
 }
