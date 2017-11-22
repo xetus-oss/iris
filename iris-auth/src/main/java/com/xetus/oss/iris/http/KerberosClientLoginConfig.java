@@ -6,6 +6,12 @@ import java.util.Map;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.Configuration;
 
+/**
+ * A {@link Configuration} object explicitly dedicated for 
+ * programmatically configuring the Krb5LoginModule. This avoids the
+ * need for consumers to create and specify a JAAS configuration file,
+ * and for that JAAS configuration to be JVM-wide.
+ */
 public class KerberosClientLoginConfig extends Configuration {
 
   private final String keytabPath;

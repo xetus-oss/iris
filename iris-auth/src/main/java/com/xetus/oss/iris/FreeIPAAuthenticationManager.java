@@ -60,6 +60,11 @@ import com.xetus.oss.iris.http.JsonRpcHttpKerberosClient;
  * <h5>Notes</h5>
  * The {@link FreeIPAClient} returned in both of the above scenarios will
  * have the same access privileges as the accounts used to authenticate them.
+ * 
+ * If a {@link FreeIPAConfig#getKeytabPath()} is configured, on 
+ * construction the {@link FreeIPAAuthenticationManager} will attempt 
+ * a dummy authentication using the Kerberos configuration to validate
+ * the Kerberos keytab and configuration.
  */
 public class FreeIPAAuthenticationManager {
 
@@ -109,7 +114,7 @@ public class FreeIPAAuthenticationManager {
    * configurations.
    */
   public JsonRpcHttpClient getRPCKerberosClient() 
-                           throws InvalidKeytabException {
+                           throws InvalidKeytabOrKrbConfigException {
     if (config.getKeytabPath() == null) {
       throw new IllegalStateException(
         "Cannot create Kerberos client if keytab path is not configured"
@@ -139,13 +144,7 @@ public class FreeIPAAuthenticationManager {
   }
 
   /**
-   * @return {@link FreeIPAClient} configured with the session ID and
-   * the FreeIPA server's JSON-RPC endpoint. Note that a half-hearted
-   * check will be made to ensure a session has been retrieved before
-   * creating and returning a new client. 
-   * @throws PasswordExpiredException 
-   * @throws InvalidUserOrRealmException 
-   * @throws InvalidPasswordException 
+   * @see #getSessionClient(String, String, String)
    */
   public JsonRpcHttpClient getSessionClient(String user, String pass) 
                            throws PasswordExpiredException, 
@@ -178,7 +177,10 @@ public class FreeIPAAuthenticationManager {
       headers
     );
   }
-  
+
+  /**
+   * @see #connect(String, String, String)
+   */
   public String connect(String user, String pass) 
                 throws PasswordExpiredException, 
                        InvalidPasswordException, 
@@ -280,6 +282,9 @@ public class FreeIPAAuthenticationManager {
               sessionCookie.get().getValue() : null; 
   }
   
+  /**
+   * @see #resetPassword(String, String, String, String, String)
+   */
   public JsonRpcHttpClient resetPassword(String user, 
                                          String oldPass, 
                                          String newPass) 
@@ -290,6 +295,10 @@ public class FreeIPAAuthenticationManager {
     return resetPassword(user, oldPass, newPass, null, null);
   }
 
+  
+  /**
+   * @see #resetPassword(String, String, String, String, String)
+   */
   public JsonRpcHttpClient resetPassword(String user, 
                                          String oldPass, 
                                          String newPass,

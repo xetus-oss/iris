@@ -20,9 +20,14 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.xetus.oss.iris.FreeIPAConfig;
-import com.xetus.oss.iris.InvalidKeytabException;
+import com.xetus.oss.iris.InvalidKeytabOrKrbConfigException;
 import com.xetus.oss.iris.UserPrincipalConverter;
 
+/**
+ * A {@link JsonRpcHttpClient} extension that wraps the {@link 
+ * #invoke(String, Object, Type, Map)} base method in a privileged 
+ * action using an authenticated Kerberos Subject.
+ */
 public class JsonRpcHttpKerberosClient extends JsonRpcHttpClient {
 
   private static final Logger LOGGER = LoggerFactory
@@ -66,7 +71,7 @@ public class JsonRpcHttpKerberosClient extends JsonRpcHttpClient {
                        Object argument, 
                        Type returnType,
                        Map<String, String> extraHeaders) 
-                throws InvalidKeytabException,
+                throws InvalidKeytabOrKrbConfigException,
                        Throwable {
      try {
        /*
@@ -112,7 +117,7 @@ public class JsonRpcHttpKerberosClient extends JsonRpcHttpClient {
        });
  
      } catch (LoginException e) {
-       throw new InvalidKeytabException("Error running rest call", e);
+       throw new InvalidKeytabOrKrbConfigException("Error running rest call", e);
      }
   }
 
