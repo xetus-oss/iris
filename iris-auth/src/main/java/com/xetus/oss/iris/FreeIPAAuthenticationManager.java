@@ -17,6 +17,8 @@ import java.util.concurrent.TimeUnit;
 import org.apache.http.Header;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CookieStore;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -171,6 +173,7 @@ public class FreeIPAAuthenticationManager {
     Map<String, String> headers = buildClientHeaders();
     headers.put("referrer", getIpaUrl("/ipa").toString());
     headers.put("Cookie", "ipa_session=" + connect(user, pass, realm));
+    LOGGER.trace("initializing session client with headers {}", headers);
     return new JsonRpcHttpClient(
       config.getRPCObjectMapper(),
       getIpaUrl("/ipa/session/json"),
@@ -275,9 +278,13 @@ public class FreeIPAAuthenticationManager {
     }
     
     Optional<Cookie> sessionCookie = cookieStore
-        .getCookies().stream().filter( c -> c.getName() == "ipa_session")
+        .getCookies().stream().filter( c -> "ipa_session".equals(c.getName()))
                               .findFirst();
     
+    LOGGER.trace(
+        "Cookies in cookie store after connection: {}", 
+        cookieStore.getCookies()
+    );
     return sessionCookie.isPresent() ? 
               sessionCookie.get().getValue() : null; 
   }
@@ -452,6 +459,9 @@ public class FreeIPAAuthenticationManager {
           .useSystemProperties()
           .setConnectionManager(cm)
           .setDefaultCookieStore(cookieStore)
+          .setDefaultRequestConfig(
+              RequestConfig.copy(RequestConfig.DEFAULT)
+                           .setCookieSpec(CookieSpecs.STANDARD).build())
           .setDefaultSocketConfig(
              SocketConfig.custom()
                          .setSoTimeout(30*1000)

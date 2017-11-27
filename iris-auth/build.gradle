@@ -3,6 +3,6 @@ apply plugin: 'java'
 dependencies {
   compile 'org.slf4j:slf4j-api:1.7.25',
           'org.slf4j:slf4j-simple:1.7.25',
-          'org.apache.httpcomponents:httpclient:4.3.6',
+          'org.apache.httpcomponents:httpclient:4.5.3',
           'com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.0'
 }
