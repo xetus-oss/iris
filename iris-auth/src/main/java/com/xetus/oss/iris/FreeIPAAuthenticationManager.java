@@ -290,6 +290,7 @@ public class FreeIPAAuthenticationManager {
                                          String newPass) 
                            throws PasswordExpiredException, 
                                   InvalidPasswordException, 
+                                  ProbableLockOutException,
                                   PasswordPolicyViolationException, 
                                   InvalidUserOrRealmException{
     return resetPassword(user, oldPass, newPass, null, null);
@@ -305,6 +306,7 @@ public class FreeIPAAuthenticationManager {
                                          String realm) 
                            throws PasswordExpiredException, 
                                   InvalidPasswordException, 
+                                  ProbableLockOutException,
                                   PasswordPolicyViolationException, 
                                   InvalidUserOrRealmException{
     return resetPassword(user, oldPass, newPass, realm, null);
@@ -339,7 +341,8 @@ public class FreeIPAAuthenticationManager {
                                          String otp) 
                            throws PasswordExpiredException, 
                                   InvalidPasswordException, 
-                                  PasswordPolicyViolationException, 
+                                  ProbableLockOutException,
+                                  PasswordPolicyViolationException,
                                   InvalidUserOrRealmException {
 
     // for some reason here FreeIPA does not expect to have the realm passed
@@ -418,8 +421,14 @@ public class FreeIPAAuthenticationManager {
         }
         throw new PasswordPolicyViolationException(policyViolations);
       }
+      /*
+       * "error" seems to come back whenever the user account has been
+       * locked due to excessive password attempts, although it's 
+       * possible there are other circumstances where the WSGI endpoint
+       * will return "error"
+       */
       if ("error".equals(header.getValue())) {
-        throw new RuntimeException("Password change failed");
+        throw new ProbableLockOutException("Password change failed");
       }
     }
 
